@@ -12,7 +12,8 @@ function App() {
   const sendRequest = async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/sheeshable");
+      const API_BASE = import.meta.env.VITE_API_ORIGIN || "/api";
+      const res = await fetch(`${API_BASE}/sheeshable`);
       const data = await res.json();
       const apiName = data.servedBy || "Unknown";
       const timestamp = new Date().toLocaleTimeString();
