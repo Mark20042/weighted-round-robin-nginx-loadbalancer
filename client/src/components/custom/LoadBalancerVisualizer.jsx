@@ -351,15 +351,18 @@ const LoadBalancerVisualizer = ({ responses }) => {
                     <div
                       className={cn(
                         "h-full bg-slate-900 border rounded-lg flex items-center relative transition-all shadow-xl",
-                        isMobile ? "w-[140px] p-1.5 gap-1.5" : "w-[320px] p-2 gap-3",
+                        isMobile ? "w-[100px] p-1.5 gap-1" : "w-[320px] p-2 gap-3",
                         isProcessing
                           ? "border-green-500 shadow-[0_0_20px_rgba(34,197,94,0.2)]"
                           : "border-slate-800",
                       )}
                     >
-                      {/* Server Info */}
-                      <div className={cn("flex items-center gap-1.5 flex-shrink-0", isMobile ? "w-[55px]" : "w-[130px] border-r border-slate-800 pr-2 gap-2")}>
-                        <div className="relative">
+                      {/* Server Info - Full width on mobile */}
+                      <div className={cn(
+                        "flex items-center flex-shrink-0",
+                        isMobile ? "gap-1 w-full" : "w-[130px] border-r border-slate-800 pr-2 gap-2"
+                      )}>
+                        <div className="relative flex-shrink-0">
                           <Database
                             className={cn(
                               isMobile ? "w-4 h-4" : "w-6 h-6",
@@ -380,23 +383,23 @@ const LoadBalancerVisualizer = ({ responses }) => {
                             />
                           )}
                         </div>
-                        <div className="min-w-0 flex flex-col">
+                        <div className="min-w-0 flex flex-col flex-1">
                           <div
                             className={cn(
                               "font-bold truncate",
-                              isMobile ? "text-[9px]" : "text-xs",
+                              isMobile ? "text-[8px]" : "text-xs",
                               isProcessing ? "text-white" : "text-slate-500",
                             )}
                           >
                             {isMobile ? `S${node.label.split(" ")[1]}` : node.label}
                           </div>
 
-                          {/* Weight Control */}
-                          <div className="flex items-center gap-1 mt-0.5">
-                            <span className={cn("text-slate-600 font-mono", isMobile ? "text-[7px]" : "text-[9px]")}>
+                          {/* Weight Control - Compact on mobile */}
+                          <div className="flex items-center gap-0.5 mt-0.5">
+                            <span className={cn("text-slate-600 font-mono", isMobile ? "text-[6px]" : "text-[9px]")}>
                               W:
                             </span>
-                            <div className="flex items-center bg-slate-950 border border-slate-800 rounded px-0.5 gap-0.5">
+                            <div className={cn("flex items-center bg-slate-950 border border-slate-800 rounded", isMobile ? "px-0.5 gap-0" : "px-0.5 gap-0.5")}>
                               <button
                                 onClick={() =>
                                   handleWeightChange(node.id, node.weight - 1)
@@ -406,7 +409,7 @@ const LoadBalancerVisualizer = ({ responses }) => {
                                 <Minus className={cn(isMobile ? "w-2 h-2" : "w-3 h-3")} />
                               </button>
 
-                              <span className={cn("font-mono text-yellow-500 text-center font-bold", isMobile ? "text-[8px] min-w-[10px]" : "text-[10px] min-w-[14px]")}>
+                              <span className={cn("font-mono text-yellow-500 text-center font-bold", isMobile ? "text-[7px] min-w-[8px]" : "text-[10px] min-w-[14px]")}>
                                 {node.weight}
                               </span>
 
@@ -423,36 +426,37 @@ const LoadBalancerVisualizer = ({ responses }) => {
                         </div>
                       </div>
 
-                      {/* Queue Section */}
-                      <div className="flex-1 h-full flex flex-col justify-center min-w-0">
-                        <div className={cn("text-gray-200 font-mono mb-0.5 flex justify-between uppercase", isMobile ? "text-[6px]" : "text-[8px]")}>
-                          <span>Queue</span>
-                          <span>{queue.length}</span>
+                      {/* Queue Section - Hidden on mobile */}
+                      {!isMobile && (
+                        <div className="flex-1 h-full flex flex-col justify-center min-w-0">
+                          <div className="text-[8px] text-gray-200 font-mono mb-0.5 flex justify-between uppercase">
+                            <span>Queue</span>
+                            <span>{queue.length}</span>
+                          </div>
+                          <div className="h-8 w-full bg-black/40 rounded border border-slate-800/60 p-1 flex items-center gap-1 overflow-hidden relative shadow-inner">
+                            {queue.length === 0 && (
+                              <span className="text-[8px] text-slate-700 w-full text-center italic">
+                                Idle
+                              </span>
+                            )}
+                            <AnimatePresence>
+                              {queue.map((req) => (
+                                <motion.div
+                                  key={req.id}
+                                  layout
+                                  initial={{ opacity: 0, scale: 0, x: -5 }}
+                                  animate={{ opacity: 1, scale: 1, x: 0 }}
+                                  exit={{ opacity: 0, scale: 0 }}
+                                  className={cn(
+                                    "h-full w-1.5 rounded-[1px] shrink-0 shadow-sm",
+                                    req.color,
+                                  )}
+                                />
+                              ))}
+                            </AnimatePresence>
+                          </div>
                         </div>
-                        <div className={cn("w-full bg-black/40 rounded border border-slate-800/60 p-0.5 flex items-center gap-0.5 overflow-hidden relative shadow-inner", isMobile ? "h-5" : "h-8 p-1 gap-1")}>
-                          {queue.length === 0 && (
-                            <span className={cn("text-slate-700 w-full text-center italic", isMobile ? "text-[6px]" : "text-[8px]")}>
-                              Idle
-                            </span>
-                          )}
-                          <AnimatePresence>
-                            {queue.map((req) => (
-                              <motion.div
-                                key={req.id}
-                                layout
-                                initial={{ opacity: 0, scale: 0, x: -5 }}
-                                animate={{ opacity: 1, scale: 1, x: 0 }}
-                                exit={{ opacity: 0, scale: 0 }}
-                                className={cn(
-                                  "h-full rounded-[1px] shrink-0 shadow-sm",
-                                  isMobile ? "w-1" : "w-1.5",
-                                  req.color,
-                                )}
-                              />
-                            ))}
-                          </AnimatePresence>
-                        </div>
-                      </div>
+                      )}
                     </div>
                   </div>
                 );
