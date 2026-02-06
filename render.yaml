@@ -109,4 +109,4 @@ services:
     rootDir: client
     envVars:
       - key: VITE_API_ORIGIN
-        value: placeholder-update-after-deploying-nginx
+        value: https://nginx-lb-j0am.onrender.com
