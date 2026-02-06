@@ -100,13 +100,13 @@ services:
           name: api-node-5
           property: hostport
 
-staticSites:
   # --- Frontend Client ---
-  - name: client-ui
+  - type: web
+    name: client-ui
     env: static
     plan: free
     buildCommand: npm install && npm run build
-    publishDir: dist
+    staticPublishPath: dist
     rootDir: client
     envVars:
       - key: VITE_API_ORIGIN
