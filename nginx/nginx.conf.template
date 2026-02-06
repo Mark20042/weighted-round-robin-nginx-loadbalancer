@@ -71,7 +71,11 @@ http {
                 add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range,X-Upstream-Server';
             }
 
-            proxy_pass http://api_servers;
+            proxy_pass https://api_servers;
+            
+            # Helper for HTTPS upstreams (Render Free Tier public URLs)
+            proxy_ssl_server_name on;
+            proxy_ssl_protocols TLSv1.2 TLSv1.3;
             
             # Headers
             proxy_set_header Host $host;

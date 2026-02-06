@@ -40,6 +40,9 @@ envsubst '${API_1_ADDR} ${API_2_ADDR} ${API_3_ADDR} ${API_4_ADDR} ${API_5_ADDR} 
 echo "Validating Nginx URL resolution..."
 until nginx -t -c /etc/nginx/nginx.conf.real; do
     echo "Nginx config validation failed (likely DNS not ready). Retrying in 5s..."
+    echo "--- Validation Error Output ---"
+    nginx -t -c /etc/nginx/nginx.conf.real
+    echo "-------------------------------"
     sleep 5
     # Regenerate config just in case env vars changed or transient issues
     envsubst '${API_1_ADDR} ${API_2_ADDR} ${API_3_ADDR} ${API_4_ADDR} ${API_5_ADDR} ${PORT}' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf.real
