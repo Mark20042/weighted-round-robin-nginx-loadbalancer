@@ -3,6 +3,7 @@ services:
   - type: web
     name: api-node-1
     env: node
+    region: singapore
     plan: free
     buildCommand: npm install
     startCommand: node app.js
@@ -16,6 +17,7 @@ services:
   - type: web
     name: api-node-2
     env: node
+    region: singapore
     plan: free
     buildCommand: npm install
     startCommand: node app.js
@@ -29,6 +31,7 @@ services:
   - type: web
     name: api-node-3
     env: node
+    region: singapore
     plan: free
     buildCommand: npm install
     startCommand: node app.js
@@ -42,6 +45,7 @@ services:
   - type: web
     name: api-node-4
     env: node
+    region: singapore
     plan: free
     buildCommand: npm install
     startCommand: node app.js
@@ -55,6 +59,7 @@ services:
   - type: web
     name: api-node-5
     env: node
+    region: singapore
     plan: free
     buildCommand: npm install
     startCommand: node app.js
@@ -68,6 +73,7 @@ services:
   - type: web
     name: nginx-lb
     env: docker
+    region: singapore
     plan: free
     dockerContext: ./nginx
     dockerfilePath: ./nginx/Dockerfile
