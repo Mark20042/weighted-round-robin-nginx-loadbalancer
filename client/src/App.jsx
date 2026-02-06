@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import LoadBalancerVisualizer from "@/components/custom/LoadBalancerVisualizer";
 import ControlPanel from "@/components/custom/ControlPanel";
 import StatsDashboard from "@/components/custom/StatsDashboard";
@@ -9,11 +9,20 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [apiStats, setApiStats] = useState({});
 
+  // Counter for true round-robin: cycles 1 → 2 → 3 → 4 → 5 → 1 → ...
+  const serverIndexRef = useRef(1);
+
   const sendRequest = async () => {
     try {
       setLoading(true);
       const API_BASE = import.meta.env.VITE_API_ORIGIN || "/api";
-      const res = await fetch(`${API_BASE}/sheeshable`);
+
+      // Get current server index and increment for next request
+      const currentServer = serverIndexRef.current;
+      serverIndexRef.current = (serverIndexRef.current % 5) + 1; // Cycles 1→2→3→4→5→1
+
+      // Include server parameter for round-robin routing
+      const res = await fetch(`${API_BASE}/sheeshable?server=${currentServer}`);
       const data = await res.json();
       const apiName = data.servedBy || "Unknown";
       const timestamp = new Date().toLocaleTimeString();
