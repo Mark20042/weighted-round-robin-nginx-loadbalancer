@@ -11,12 +11,12 @@ http {
     # Client sends ?server=1, ?server=2, etc. for explicit control
     # This enables TRUE sequential round-robin
     map $arg_server $selected_backend {
-        "1"     "${API_1_ADDR}";
-        "2"     "${API_2_ADDR}";
-        "3"     "${API_3_ADDR}";
-        "4"     "${API_4_ADDR}";
-        "5"     "${API_5_ADDR}";
-        default "${API_1_ADDR}";
+        1       ${API_1_ADDR};
+        2       ${API_2_ADDR};
+        3       ${API_3_ADDR};
+        4       ${API_4_ADDR};
+        5       ${API_5_ADDR};
+        default ${API_1_ADDR};
     }
 
     # Logging
@@ -25,7 +25,7 @@ http {
                     '"$http_user_agent" upstream: $selected_backend server=$arg_server';
 
     access_log /var/log/nginx/access.log main;
-    error_log /var/log/nginx/error.log warn;
+    error_log /var/log/nginx/error.log debug;
 
     server {
         listen ${PORT};
@@ -36,6 +36,12 @@ http {
             access_log off;
             return 200 "healthy\n";
             add_header Content-Type text/plain;
+        }
+
+        # Debug endpoint to check routing
+        location /debug {
+            add_header Content-Type text/plain;
+            return 200 "server=$arg_server\nbackend=$selected_backend\n";
         }
 
         # Proxy requests to API servers
