@@ -1,0 +1,113 @@
+services:
+  # --- API Node 1 ---
+  - type: web
+    name: api-node-1
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node app.js
+    envVars:
+      - key: SERVER_NAME
+        value: "API Server 1"
+      - key: PORT
+        value: 3000
+
+  # --- API Node 2 ---
+  - type: web
+    name: api-node-2
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node app.js
+    envVars:
+      - key: SERVER_NAME
+        value: "API Server 2"
+      - key: PORT
+        value: 3000
+
+  # --- API Node 3 ---
+  - type: web
+    name: api-node-3
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node app.js
+    envVars:
+      - key: SERVER_NAME
+        value: "API Server 3"
+      - key: PORT
+        value: 3000
+
+  # --- API Node 4 ---
+  - type: web
+    name: api-node-4
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node app.js
+    envVars:
+      - key: SERVER_NAME
+        value: "API Server 4"
+      - key: PORT
+        value: 3000
+
+  # --- API Node 5 ---
+  - type: web
+    name: api-node-5
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node app.js
+    envVars:
+      - key: SERVER_NAME
+        value: "API Server 5"
+      - key: PORT
+        value: 3000
+
+  # --- Nginx Load Balancer ---
+  - type: web
+    name: nginx-lb
+    env: docker
+    plan: free
+    dockerContext: ./nginx
+    dockerfilePath: ./nginx/Dockerfile
+    healthCheckPath: /health
+    envVars:
+      # Inject internal host:port of each API service
+      - key: API_1_ADDR
+        fromService:
+          type: web
+          name: api-node-1
+          property: hostport
+      - key: API_2_ADDR
+        fromService:
+          type: web
+          name: api-node-2
+          property: hostport
+      - key: API_3_ADDR
+        fromService:
+          type: web
+          name: api-node-3
+          property: hostport
+      - key: API_4_ADDR
+        fromService:
+          type: web
+          name: api-node-4
+          property: hostport
+      - key: API_5_ADDR
+        fromService:
+          type: web
+          name: api-node-5
+          property: hostport
+
+  # --- Frontend Client ---
+  - type: static
+    name: client-ui
+    env: static
+    plan: free
+    buildCommand: npm install && npm run build
+    publishDir: dist
+    rootDir: client
+    envVars:
+      - key: VITE_API_ORIGIN
+        value: placeholder-update-after-deploying-nginx

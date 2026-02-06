@@ -1,0 +1,77 @@
+services:
+  # Nginx Load Balancer
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-lb
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - api
+    networks:
+      - app-network
+
+  # api 1
+  api:
+    build: .
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - SERVER_NAME=API Server 1
+    expose:
+      - "3000"
+    networks:
+      - app-network
+
+  # api 2
+  api2:
+    build: .
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - SERVER_NAME=API Server 2
+    expose:
+      - "3000"
+    networks:
+      - app-network
+
+  # api 3
+  api3:
+    build: .
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - SERVER_NAME=API Server 3
+    expose:
+      - "3000"
+    networks:
+      - app-network
+
+  # api 4
+  api4:
+    build: .
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - SERVER_NAME=API Server 4
+    expose:
+      - "3000"
+    networks:
+      - app-network
+
+  # api 5
+  api5:
+    build: .
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - SERVER_NAME=API Server 5
+    expose:
+      - "3000"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
