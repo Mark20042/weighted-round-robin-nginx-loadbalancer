@@ -30,6 +30,20 @@ const useElementSize = () => {
   return [ref, size];
 };
 
+// Hook to detect mobile screen
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  return isMobile;
+};
+
 const LoadBalancerVisualizer = ({ responses }) => {
   const [clientQueue, setClientQueue] = useState([]);
   const [activePacket, setActivePacket] = useState(null);
@@ -43,6 +57,7 @@ const LoadBalancerVisualizer = ({ responses }) => {
   const [processingNodes, setProcessingNodes] = useState({});
   const [svgContainerRef, svgSize] = useElementSize();
   const lastProcessedIdRef = useRef(null);
+  const isMobile = useIsMobile();
 
   const [nodes, setNodes] = useState([
     { id: "API Server 1", label: "Server 1", color: "bg-red-500", weight: 1 },
@@ -64,7 +79,6 @@ const LoadBalancerVisualizer = ({ responses }) => {
 
   const handleWeightChange = (id, newWeight) => {
     const val = parseInt(newWeight);
-    // Limit weight between 1 and 10 for safety
     if (!isNaN(val) && val > 0 && val <= 10) {
       setNodes((prev) =>
         prev.map((node) => (node.id === id ? { ...node, weight: val } : node)),
@@ -142,13 +156,14 @@ const LoadBalancerVisualizer = ({ responses }) => {
     }
   };
 
-  const CONTAINER_HEIGHT = 600;
-  const HEADER_HEIGHT = 60;
+  // Responsive dimensions
+  const CONTAINER_HEIGHT = isMobile ? 500 : 600;
+  const HEADER_HEIGHT = 50;
   const CONTENT_HEIGHT = CONTAINER_HEIGHT - HEADER_HEIGHT;
   const CENTER_Y = CONTENT_HEIGHT / 2;
 
-  const NODE_HEIGHT = 80;
-  const NODE_GAP = 20;
+  const NODE_HEIGHT = isMobile ? 60 : 80;
+  const NODE_GAP = isMobile ? 8 : 20;
   const TOTAL_SPACE = NODE_HEIGHT + NODE_GAP;
 
   const getTargetY = (index) => {
@@ -162,17 +177,17 @@ const LoadBalancerVisualizer = ({ responses }) => {
       style={{ height: CONTAINER_HEIGHT }}
     >
       <CardHeader
-        className="pb-2 pt-4 border-b border-slate-900 bg-slate-900/50 shrink-0 flex justify-center"
+        className="pb-2 pt-3 border-b border-slate-900 bg-slate-900/50 shrink-0 flex justify-center px-3"
         style={{ height: HEADER_HEIGHT }}
       >
-        <CardTitle className="flex items-center justify-between text-lg w-full px-2">
+        <CardTitle className="flex items-center justify-between text-base md:text-lg w-full">
           <div className="flex items-center gap-2">
-            <Activity className="text-blue-500 h-5 w-5" />
-            <span className="font-semibold tracking-tight">
+            <Activity className="text-blue-500 h-4 w-4 md:h-5 md:w-5" />
+            <span className="font-semibold tracking-tight text-sm md:text-base">
               Weighted Round Robin
             </span>
           </div>
-          <div className="flex items-center gap-2 text-xs font-medium bg-slate-900 border border-slate-800 px-3 py-1 rounded-full text-slate-400">
+          <div className="flex items-center gap-2 text-[10px] md:text-xs font-medium bg-slate-900 border border-slate-800 px-2 md:px-3 py-1 rounded-full text-slate-400">
             <span>
               Pending:{" "}
               <span className="text-white font-bold">{clientQueue.length}</span>
@@ -182,34 +197,43 @@ const LoadBalancerVisualizer = ({ responses }) => {
       </CardHeader>
 
       <CardContent className="p-0 relative flex-1 overflow-hidden">
-        <div className="h-full w-full flex items-center px-4 lg:px-6 relative">
+        <div className="h-full w-full flex items-center px-2 md:px-4 lg:px-6 relative">
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:40px_40px] opacity-10 pointer-events-none" />
 
-          <div className="flex items-center flex-shrink-0 z-10 mr-2">
-            <div className="w-24 flex flex-col items-center gap-2 mt-12">
+          {/* Client & Load Balancer - Hidden on very small screens, simplified on mobile */}
+          <div className={cn("flex items-center flex-shrink-0 z-10", isMobile ? "mr-1" : "mr-2")}>
+            <div className={cn("flex flex-col items-center gap-1", isMobile ? "w-12" : "w-24 mt-12")}>
               <div className="relative">
-                <div className="w-14 h-14 rounded-full bg-blue-500/10 border border-blue-500/50 flex items-center justify-center shadow-[0_0_25px_rgba(59,130,246,0.3)]">
-                  <Network className="w-7 h-7 text-blue-400" />
+                <div className={cn(
+                  "rounded-full bg-blue-500/10 border border-blue-500/50 flex items-center justify-center shadow-[0_0_25px_rgba(59,130,246,0.3)]",
+                  isMobile ? "w-10 h-10" : "w-14 h-14"
+                )}>
+                  <Network className={cn("text-blue-400", isMobile ? "w-5 h-5" : "w-7 h-7")} />
                 </div>
-                <div className="text-[10px] text-slate-500 mt-1 font-mono font-bold">
+                <div className={cn("text-slate-500 font-mono font-bold text-center", isMobile ? "text-[8px] mt-0.5" : "text-[10px] mt-1")}>
                   CLIENT
                 </div>
               </div>
-              <div className="h-6 w-full flex items-center justify-center gap-0.5 flex-wrap px-2">
-                <AnimatePresence>
-                  {clientQueue.slice(0, 12).map((req) => (
-                    <motion.div
-                      key={req.id}
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      exit={{ scale: 0 }}
-                      className="w-1.5 h-4 bg-blue-500 rounded-sm"
-                    />
-                  ))}
-                </AnimatePresence>
-              </div>
+              {/* Queue dots - hidden on mobile */}
+              {!isMobile && (
+                <div className="h-6 w-full flex items-center justify-center gap-0.5 flex-wrap px-2">
+                  <AnimatePresence>
+                    {clientQueue.slice(0, 12).map((req) => (
+                      <motion.div
+                        key={req.id}
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        exit={{ scale: 0 }}
+                        className="w-1.5 h-4 bg-blue-500 rounded-sm"
+                      />
+                    ))}
+                  </AnimatePresence>
+                </div>
+              )}
             </div>
-            <div className="w-16 h-[2px] bg-slate-800 relative mx-2">
+
+            {/* Connection line */}
+            <div className={cn("h-[2px] bg-slate-800 relative", isMobile ? "w-4 mx-1" : "w-16 mx-2")}>
               <AnimatePresence>
                 {activePacket?.phase === "toLoadBalancer" && (
                   <motion.div
@@ -218,7 +242,7 @@ const LoadBalancerVisualizer = ({ responses }) => {
                     animate={{ left: "100%" }}
                     transition={{ duration: 0.2, ease: "linear" }}
                     onAnimationComplete={handlePhaseComplete}
-                    className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full z-30 shadow-lg"
+                    className={cn("absolute top-1/2 -translate-y-1/2 bg-white rounded-full z-30 shadow-lg", isMobile ? "w-2 h-2" : "w-3 h-3")}
                   >
                     <div
                       className={`absolute inset-0 rounded-full blur-[2px] ${nodes.find((n) => n.id === activePacket.targetApi)?.color}`}
@@ -227,27 +251,34 @@ const LoadBalancerVisualizer = ({ responses }) => {
                 )}
               </AnimatePresence>
             </div>
+
+            {/* Load Balancer */}
             <div className="flex flex-col items-center gap-1 relative">
               <div
                 className={cn(
-                  "w-20 h-20 bg-slate-900 border-2 rounded-xl flex items-center justify-center transition-all duration-300 z-20",
+                  "bg-slate-900 border-2 rounded-xl flex items-center justify-center transition-all duration-300 z-20",
+                  isMobile ? "w-12 h-12" : "w-20 h-20",
                   activePacket?.phase === "toLoadBalancer"
                     ? "border-indigo-400 shadow-[0_0_30px_rgba(99,102,241,0.4)]"
                     : "border-slate-700",
                 )}
               >
-                <ShieldCheck className="w-9 h-9 text-indigo-500" />
+                <ShieldCheck className={cn("text-indigo-500", isMobile ? "w-6 h-6" : "w-9 h-9")} />
               </div>
-              <span className="text-[10px] text-slate-500 font-mono bg-slate-900 px-2 py-0.5 rounded border border-slate-800 absolute -bottom-5">
+              <span className={cn(
+                "text-slate-500 font-mono bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800 absolute whitespace-nowrap",
+                isMobile ? "text-[7px] -bottom-4" : "text-[10px] px-2 -bottom-5"
+              )}>
                 NGINX-LB
               </span>
             </div>
           </div>
 
+          {/* SVG Connection Lines & Server Nodes */}
           <div className="flex-1 flex items-center h-full relative min-w-0">
             <div
               ref={svgContainerRef}
-              className="h-full relative flex-1 min-w-[150px]"
+              className={cn("h-full relative flex-1", isMobile ? "min-w-[60px]" : "min-w-[150px]")}
             >
               <svg className="absolute inset-0 w-full h-full overflow-visible pointer-events-none">
                 {nodes.map((node, index) => {
@@ -282,7 +313,7 @@ const LoadBalancerVisualizer = ({ responses }) => {
                     })}
                     transition={{ duration: 0.2, ease: "easeInOut" }}
                     onAnimationComplete={handlePhaseComplete}
-                    className="absolute w-3 h-3 bg-white rounded-full z-30 shadow-md -translate-x-1/2 -translate-y-1/2"
+                    className={cn("absolute bg-white rounded-full z-30 shadow-md -translate-x-1/2 -translate-y-1/2", isMobile ? "w-2 h-2" : "w-3 h-3")}
                   >
                     <div
                       className={`absolute inset-0 rounded-full ${nodes.find((n) => n.id === activePacket.targetApi)?.color}`}
@@ -292,6 +323,7 @@ const LoadBalancerVisualizer = ({ responses }) => {
               </AnimatePresence>
             </div>
 
+            {/* Server Nodes */}
             <div
               className="flex flex-col relative z-10 flex-shrink-0 -ml-[2px]"
               style={{ gap: `${NODE_GAP}px` }}
@@ -306,26 +338,31 @@ const LoadBalancerVisualizer = ({ responses }) => {
                     className="flex items-center"
                     style={{ height: `${NODE_HEIGHT}px` }}
                   >
+                    {/* Connection dot */}
                     <div
                       className={cn(
-                        "w-3 h-3 rounded-full -mr-1.5 z-20 transition-colors border-2 border-slate-950",
+                        "rounded-full -mr-1.5 z-20 transition-colors border-2 border-slate-950",
+                        isMobile ? "w-2 h-2" : "w-3 h-3",
                         isProcessing ? "bg-green-500" : "bg-slate-700",
                       )}
                     />
 
+                    {/* Server Card */}
                     <div
                       className={cn(
-                        "w-[320px] h-full bg-slate-900 border rounded-lg flex items-center p-2 relative transition-all shadow-xl gap-3",
+                        "h-full bg-slate-900 border rounded-lg flex items-center relative transition-all shadow-xl",
+                        isMobile ? "w-[140px] p-1.5 gap-1.5" : "w-[320px] p-2 gap-3",
                         isProcessing
                           ? "border-green-500 shadow-[0_0_20px_rgba(34,197,94,0.2)]"
                           : "border-slate-800",
                       )}
                     >
-                      <div className="flex items-center gap-2 w-[130px] flex-shrink-0 border-r border-slate-800 pr-2">
+                      {/* Server Info */}
+                      <div className={cn("flex items-center gap-1.5 flex-shrink-0", isMobile ? "w-[55px]" : "w-[130px] border-r border-slate-800 pr-2 gap-2")}>
                         <div className="relative">
                           <Database
                             className={cn(
-                              "w-6 h-6",
+                              isMobile ? "w-4 h-4" : "w-6 h-6",
                               isProcessing
                                 ? "text-green-400"
                                 : "text-slate-600",
@@ -343,32 +380,33 @@ const LoadBalancerVisualizer = ({ responses }) => {
                             />
                           )}
                         </div>
-                        <div className="min-w-0 flex flex-col w-full">
+                        <div className="min-w-0 flex flex-col">
                           <div
                             className={cn(
-                              "text-xs font-bold truncate",
+                              "font-bold truncate",
+                              isMobile ? "text-[9px]" : "text-xs",
                               isProcessing ? "text-white" : "text-slate-500",
                             )}
                           >
-                            {node.label}
+                            {isMobile ? `S${node.label.split(" ")[1]}` : node.label}
                           </div>
 
-                          {/* 3. IMPROVED WEIGHT CONTROL */}
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-[9px] text-slate-600 font-mono">
+                          {/* Weight Control */}
+                          <div className="flex items-center gap-1 mt-0.5">
+                            <span className={cn("text-slate-600 font-mono", isMobile ? "text-[7px]" : "text-[9px]")}>
                               W:
                             </span>
-                            <div className="flex items-center bg-slate-950 border border-slate-800 rounded px-1 gap-1">
+                            <div className="flex items-center bg-slate-950 border border-slate-800 rounded px-0.5 gap-0.5">
                               <button
                                 onClick={() =>
                                   handleWeightChange(node.id, node.weight - 1)
                                 }
-                                className="w-4 h-4 flex items-center justify-center rounded hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+                                className={cn("flex items-center justify-center rounded hover:bg-slate-800 text-slate-400 hover:text-white transition-colors", isMobile ? "w-3 h-3" : "w-4 h-4")}
                               >
-                                <Minus className="w-3 h-3" />
+                                <Minus className={cn(isMobile ? "w-2 h-2" : "w-3 h-3")} />
                               </button>
 
-                              <span className="text-[10px] font-mono text-yellow-500 min-w-[14px] text-center font-bold">
+                              <span className={cn("font-mono text-yellow-500 text-center font-bold", isMobile ? "text-[8px] min-w-[10px]" : "text-[10px] min-w-[14px]")}>
                                 {node.weight}
                               </span>
 
@@ -376,23 +414,24 @@ const LoadBalancerVisualizer = ({ responses }) => {
                                 onClick={() =>
                                   handleWeightChange(node.id, node.weight + 1)
                                 }
-                                className="w-4 h-4 flex items-center justify-center rounded hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+                                className={cn("flex items-center justify-center rounded hover:bg-slate-800 text-slate-400 hover:text-white transition-colors", isMobile ? "w-3 h-3" : "w-4 h-4")}
                               >
-                                <Plus className="w-3 h-3" />
+                                <Plus className={cn(isMobile ? "w-2 h-2" : "w-3 h-3")} />
                               </button>
                             </div>
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex-1 h-full flex flex-col justify-center">
-                        <div className="text-[8px] text-gray-200 font-mono mb-1 flex justify-between uppercase">
+                      {/* Queue Section */}
+                      <div className="flex-1 h-full flex flex-col justify-center min-w-0">
+                        <div className={cn("text-gray-200 font-mono mb-0.5 flex justify-between uppercase", isMobile ? "text-[6px]" : "text-[8px]")}>
                           <span>Queue</span>
                           <span>{queue.length}</span>
                         </div>
-                        <div className="h-8 w-full bg-black/40 rounded border border-slate-800/60 p-1 flex items-center gap-1 overflow-hidden relative shadow-inner">
+                        <div className={cn("w-full bg-black/40 rounded border border-slate-800/60 p-0.5 flex items-center gap-0.5 overflow-hidden relative shadow-inner", isMobile ? "h-5" : "h-8 p-1 gap-1")}>
                           {queue.length === 0 && (
-                            <span className="text-[8px] text-slate-700 w-full text-center italic">
+                            <span className={cn("text-slate-700 w-full text-center italic", isMobile ? "text-[6px]" : "text-[8px]")}>
                               Idle
                             </span>
                           )}
@@ -405,7 +444,8 @@ const LoadBalancerVisualizer = ({ responses }) => {
                                 animate={{ opacity: 1, scale: 1, x: 0 }}
                                 exit={{ opacity: 0, scale: 0 }}
                                 className={cn(
-                                  "h-full w-1.5 rounded-[1px] shrink-0 shadow-sm",
+                                  "h-full rounded-[1px] shrink-0 shadow-sm",
+                                  isMobile ? "w-1" : "w-1.5",
                                   req.color,
                                 )}
                               />
