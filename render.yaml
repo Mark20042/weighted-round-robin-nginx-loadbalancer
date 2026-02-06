@@ -100,9 +100,9 @@ services:
           name: api-node-5
           property: hostport
 
+staticSites:
   # --- Frontend Client ---
-  - type: static
-    name: client-ui
+  - name: client-ui
     env: static
     plan: free
     buildCommand: npm install && npm run build
