@@ -78,27 +78,27 @@ services:
         fromService:
           type: web
           name: api-node-1
-          property: hostport
+          property: host
       - key: API_2_ADDR
         fromService:
           type: web
           name: api-node-2
-          property: hostport
+          property: host
       - key: API_3_ADDR
         fromService:
           type: web
           name: api-node-3
-          property: hostport
+          property: host
       - key: API_4_ADDR
         fromService:
           type: web
           name: api-node-4
-          property: hostport
+          property: host
       - key: API_5_ADDR
         fromService:
           type: web
           name: api-node-5
-          property: hostport
+          property: host
 
   # --- Frontend Client ---
   - type: web

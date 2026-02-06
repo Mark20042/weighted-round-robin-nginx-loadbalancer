@@ -12,11 +12,14 @@ http {
         
         # All API backend servers
         # These identifiers will be replaced by environment variables at runtime
-        server ${API_1_ADDR};
-        server ${API_2_ADDR};
-        server ${API_3_ADDR};
-        server ${API_4_ADDR};
-        server ${API_5_ADDR};
+        # All API backend servers
+        # These identifiers will be replaced by environment variables at runtime
+        # Nginx Free Tier Limitation: Must use public URL (port 443)
+        server ${API_1_ADDR}:443;
+        server ${API_2_ADDR}:443;
+        server ${API_3_ADDR}:443;
+        server ${API_4_ADDR}:443;
+        server ${API_5_ADDR}:443;
     }
 
     # Logging
