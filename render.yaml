@@ -73,32 +73,18 @@ services:
     dockerfilePath: ./nginx/Dockerfile
     healthCheckPath: /health
     envVars:
-      # Inject internal host:port of each API service
+      # Hardcoded public URLs (Free Tier doesn't support internal networking)
+      # These URLs are determined after initial deployment
       - key: API_1_ADDR
-        fromService:
-          type: web
-          name: api-node-1
-          property: host
+        value: api-node-1-ykwq.onrender.com
       - key: API_2_ADDR
-        fromService:
-          type: web
-          name: api-node-2
-          property: host
+        value: api-node-2-ms2c.onrender.com
       - key: API_3_ADDR
-        fromService:
-          type: web
-          name: api-node-3
-          property: host
+        value: api-node-3-27wd.onrender.com
       - key: API_4_ADDR
-        fromService:
-          type: web
-          name: api-node-4
-          property: host
+        value: api-node-4-q8mv.onrender.com
       - key: API_5_ADDR
-        fromService:
-          type: web
-          name: api-node-5
-          property: host
+        value: api-node-5-je7r.onrender.com
 
   # --- Frontend Client ---
   - type: web
