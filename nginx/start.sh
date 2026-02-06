@@ -7,6 +7,7 @@ http {
     server {
         listen ${PORT};
         location / {
+            add_header 'Access-Control-Allow-Origin' '*';
             return 200 'Initializing Load Balancer... please wait.';
             add_header Content-Type text/plain;
         }

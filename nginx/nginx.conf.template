@@ -49,31 +49,28 @@ http {
 
         # Proxy all requests to the API servers
         location / {
-            # CORS HEADERS
+            # Validated CORS Configuration
+            
+            # Preflight requests
             if ($request_method = 'OPTIONS') {
                 add_header 'Access-Control-Allow-Origin' '*';
                 add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
-                #
-                # Custom headers and headers various browsers *should* be OK with but aren't
-                #
                 add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range';
-                #
-                # Tell client that this pre-flight info is valid for 20 days
-                #
                 add_header 'Access-Control-Max-Age' 1728000;
                 add_header 'Content-Type' 'text/plain; charset=utf-8';
+                add_header 'Content-Length' 0;
                 return 204;
             }
-            if ($request_method = 'GET') {
-                add_header 'Access-Control-Allow-Origin' '*';
-                add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
-                add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range';
-                add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range,X-Upstream-Server';
-            }
+
+            # Simple CORS for responses
+            add_header 'Access-Control-Allow-Origin' '*' always;
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
+            add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range' always;
+            add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range,X-Upstream-Server' always;
 
             proxy_pass https://api_servers;
             
-            # Helper for HTTPS upstreams (Render Free Tier public URLs)
+            # Helper for HTTPS upstreams
             proxy_ssl_server_name on;
             proxy_ssl_protocols TLSv1.2 TLSv1.3;
             
@@ -83,13 +80,7 @@ http {
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto $scheme;
             
-            # Add header to show which upstream server handled the request
-            # (Duplicate here if not covered by above add_header directives) 
-            # Note: add_header in if block might override outer add_header, so we include it in the GET block above explicitly if needed, 
-            # OR we ensure it's added by upstream or here.
-            # The original config had: add_header X-Upstream-Server $upstream_addr;
-            # We included it in Access-Control-Expose-Headers.
-            # We should also add the header itself if we want the client to see it.
+            # Upstream Server Header
             add_header X-Upstream-Server $upstream_addr always; 
             
             # Timeouts
