@@ -3,9 +3,17 @@ events {
 }
 
 http {
-    # Use public DNS resolver for dynamic resolution
-    resolver 8.8.8.8 1.1.1.1 valid=30s ipv6=off;
-    resolver_timeout 10s;
+    # Upstream definition for load balancing - TRUE ROUND ROBIN
+    upstream api_servers {
+        # round-robin is the default method
+        # Each request goes to the next server in sequence
+        
+        server ${API_1_ADDR}:443;
+        server ${API_2_ADDR}:443;
+        server ${API_3_ADDR}:443;
+        server ${API_4_ADDR}:443;
+        server ${API_5_ADDR}:443;
+    }
 
     # Logging
     log_format main '$remote_addr - $remote_user [$time_local] "$request" '
@@ -14,16 +22,6 @@ http {
 
     access_log /var/log/nginx/access.log main;
     error_log /var/log/nginx/error.log warn;
-
-    # Map to select backend server using round-robin-like behavior
-    # We'll use $request_id (random per request) to distribute load
-    split_clients "$request_id" $backend {
-        20% "${API_1_ADDR}";
-        20% "${API_2_ADDR}";
-        20% "${API_3_ADDR}";
-        20% "${API_4_ADDR}";
-        *   "${API_5_ADDR}";
-    }
 
     server {
         listen ${PORT};
@@ -39,7 +37,7 @@ http {
         # Load balancer status
         location /lb-status {
             add_header Content-Type text/plain;
-            return 200 "Load Balancer: nginx\nMode: split_clients (round-robin simulation)\n";
+            return 200 "Load Balancer: nginx\nMethod: Round Robin\n";
         }
 
         # Proxy requests to API servers
@@ -60,21 +58,21 @@ http {
             add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
             add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range,X-Upstream-Server' always;
 
-            # Dynamic proxy - resolved at request time, not config load time
-            proxy_pass https://$backend;
+            # Proxy to upstream (round-robin)
+            proxy_pass https://api_servers;
             
             # SNI for HTTPS backends
             proxy_ssl_server_name on;
             proxy_ssl_protocols TLSv1.2 TLSv1.3;
             
             # Headers
-            proxy_set_header Host $backend;
+            proxy_set_header Host $proxy_host;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto $scheme;
             
             # Show which backend was used
-            add_header X-Upstream-Server $backend always;
+            add_header X-Upstream-Server $upstream_addr always;
             
             # Timeouts
             proxy_connect_timeout 30s;
