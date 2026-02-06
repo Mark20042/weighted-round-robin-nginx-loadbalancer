@@ -5,7 +5,7 @@ import { Trash2, Send, Zap } from "lucide-react";
 const ControlPanel = ({
   onSendOne,
   onSendFive,
-  onSendTen,
+  onSendFifty,
   onClear,
   loading,
 }) => {
@@ -31,13 +31,13 @@ const ControlPanel = ({
       </Button>
 
       <Button
-        onClick={onSendTen}
+        onClick={onSendFifty}
         disabled={loading}
         variant="secondary"
         className="w-full sm:w-auto gap-2"
       >
-        <Send className="h-4 w-4" />
-        Send 10 Requests
+        <Zap className="h-4 w-4" />
+        Burst 50 Requests
       </Button>
 
       <div className="w-px h-8 bg-border hidden sm:block mx-2" />

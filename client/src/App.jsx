@@ -105,7 +105,7 @@ function App() {
             <ControlPanel
               onSendOne={sendRequest}
               onSendFive={() => sendMultipleRequests(5)}
-              onSendTen={() => sendMultipleRequests(20)}
+              onSendFifty={() => sendMultipleRequests(50)}
               onClear={clearResponses}
               loading={loading}
             />
